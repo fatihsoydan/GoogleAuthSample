@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/base32"
 	"fmt"
 	"image"
@@ -11,6 +12,7 @@ import (
 	"os/exec"
 	"strings"
 
+	qrcode "github.com/skip2/go-qrcode"
 	"github.com/xlzd/gotp"
 )
 
@@ -97,7 +99,14 @@ func Encode(secret []byte) string {
 
 func drawQrCode() {
 	secret := Encode([]byte(mySecret))
-	gotp.NewDefaultTOTP(secret).ProvisioningUri(myUser, myIssuer)
+	issuerUrl := gotp.NewDefaultTOTP(secret).ProvisioningUri(myUser, myIssuer)
+	var png []byte
+	png, err := qrcode.Encode(issuerUrl, qrcode.Medium, 256)
+	if err != nil {
+		log.Fatal(err)
+	}
+	img, _, _ := image.Decode(bytes.NewReader(png))
+	fmt.Print(convertImageToANSI(img, 1))
 }
 
 func getCode() {
